@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #container {
+            margin: 0px auto;
+            width: 500px;
+            height: 375px;
+            border: 10px #333 solid;
+        }
+        #videoElement {
+            width: 500px;
+            height: 375px;
+            background-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <video autoplay="true" id="videoElement">
+        
+        </video>
+
+        <h1 id="result"></h1>
+    </div>
+
+    <script type = "text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+
+    <script>
+    var video = document.querySelector("#videoElement");
+    var socket = io.connect('http://192.168.0.119:5000')
+    var result = document.querySelector("#result");
+    
+    result.innerHTML = "Waiting for camera...";
+
+    if (navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function (stream) {
+          video.srcObject = stream;
+        })
+
+    }
+
+    socket.on('result', function(data) {
+    console.log(data);
+    result.innerHTML = data;
+    });
+    function snapshot(){
+
+        
+        var canvas = document.createElement("canvas");
+        canvas.width = 500;
+        canvas.height = 375;
+        var context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0, 500, 375);
+        var data = canvas.toDataURL("image/png");
+        var base64 = data.replace(/^data:image\/(png|jpg);base64,/, "");
+        socket.emit('image', base64);
+
+    }
+
+    setInterval(snapshot, 1500);
+
+    </script>
+</body>
+</html>
